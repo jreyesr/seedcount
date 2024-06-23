@@ -1,6 +1,6 @@
 # Seed Counter application
 
-<img alt="Link to demo page" src="https://img.shields.io/badge/DEMO-darkgreen?style=flat-square&link=https%3A%2F%2Fseedcount.jreyesr.com%2F" height=50>
+<a href="https://seedcount.jreyesr.com/"><img alt="Link to demo page" src="https://img.shields.io/badge/DEMO-darkgreen?style=flat-square" height=40></a>
 
 This repo contains the source code for [a web application that can count fruit seeds](https://seedcount.jreyesr.com/).
 
