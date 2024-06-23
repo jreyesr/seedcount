@@ -127,12 +127,18 @@ function processImage(src) {
 let mustProcess = false;
 
 async function setupStream() {
-  const stream = await navigator.mediaDevices.getUserMedia({
-    //video: {facingMode: {exact: 'environment'}}, 
-    video: {facingMode: 'environment'},
-    audio: false, 
-    //frameRate: 2,
-  });
+  let stream = null; 
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: {facingMode: {exact: 'environment'}}, 
+      //video: {facingMode: 'environment'},
+      audio: false, 
+      //frameRate: 2,
+    });
+  } catch (err) {
+    alert("Video stream isn't available! Check that you're using a device with a back-facing camera and that you've granted permission to use it");
+    throw err;
+  }
   
   const video = document.querySelector('video');
   video.srcObject = stream;
