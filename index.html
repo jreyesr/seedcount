@@ -129,7 +129,7 @@ let mustProcess = false;
 async function setupStream() {
   let stream = null; 
   try {
-    const stream = await navigator.mediaDevices.getUserMedia({
+    stream = await navigator.mediaDevices.getUserMedia({
       video: {facingMode: {exact: 'environment'}}, 
       //video: {facingMode: 'environment'},
       audio: false, 
