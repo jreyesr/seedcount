@@ -34,6 +34,8 @@ function median(arr) {
 
 function processImage(src) {
   cv.imshow("input", src);
+  let dsize = new cv.Size(1280, 960);
+  cv.resize(src, src, dsize, 0, 0, cv.INTER_AREA);
   
   let gray = new cv.Mat();
   cv.cvtColor(src, gray, cv.COLOR_BGR2GRAY, 0);
@@ -77,9 +79,9 @@ function processImage(src) {
     const area = blobStat[4];
     const fillRatio = area / (w*h);
     
-    if(area<=70) continue; // speck of something
+    /*if(area<=70) continue; // speck of something
     if(fillRatio<0.3) continue; // same
-    if(w/h < 0.05 || w/h > 20) continue; // too skinny, very unlikely to be a row of 20 seeds in a perfect orthogonal row
+    if(w/h < 0.05 || w/h > 20) continue; // too skinny, very unlikely to be a row of 20 seeds in a perfect orthogonal row*/
     
     const PADDING=0;
     cv.rectangle(src, new cv.Point(x0-PADDING, y0-PADDING), new cv.Point(x0+w+PADDING, y0+h+PADDING), [255, 0, 0, 255], 1);
@@ -95,6 +97,7 @@ function processImage(src) {
     });
   }
   blobStats.delete(); centroids.delete();
+  console.log(seedData);
   
   const areas = seedData.map(x => x.area);
   const frs = seedData.map(x => x.fillRatio);
@@ -130,13 +133,18 @@ async function setupStream() {
   let stream = null; 
   try {
     stream = await navigator.mediaDevices.getUserMedia({
-      video: {facingMode: {exact: 'environment'}}, 
-      //video: {facingMode: 'environment'},
+      //video: {facingMode: {exact: 'environment'}}, 
+      video: {
+        width: {min: 640, ideal: 1280, max: 1920},
+        height: {min: 480, ideal: 720, max: 1080},
+        advanced: [
+          {facingMode: 'environment'},
+        ],
+      },
       audio: false, 
-      //frameRate: 2,
     });
   } catch (err) {
-    alert("Video stream isn't available! Check that you're using a device with a back-facing camera and that you've granted permission to use it");
+    alert("Video stream isn't available! Check that you're using a device with a back-facing camera and that you've granted permission to use it: " + err);
     throw err;
   }
   
