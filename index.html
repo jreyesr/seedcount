@@ -15,16 +15,63 @@
 </div>
 <div id="totalCount" style="font-size: 3em; font-family: sans-serif; text-align: center; color: darkgreen;"></div>
 
-<canvas id="input" width="1" height="1" style="border: 1px solid black; display: none;"></canvas>
-<canvas id="a" width="1" height="1" style="border: 1px solid black; display: none;"></canvas>
-<canvas id="hist" width="1" height="1" style="border: 1px solid black; display: none;"></canvas>
-<canvas id="b" width="1" height="1" style="border: 1px solid black; display: none;"></canvas>
-<canvas id="c" width="1" height="1" style="border: 1px solid black; display: none;"></canvas>
-<canvas id="d" width="1" height="1" style="border: 1px solid black; display: none;"></canvas>
-
+<details id="debugPanel">
+  <summary>DEBUG</summary>
+</details>
 
 <script>
 const SHOW_CONTOURS = true;
+let logs = [];
+const Log = {
+  _logs: [],
+  clear: function() {
+    const panel = document.getElementById("debugPanel");
+    while (panel.lastChild.nodeName !== "SUMMARY") {
+      panel.removeChild(panel.lastChild);
+    }
+    
+    Log._logs = []; // clear array
+  },
+  image: function(text, img) {
+    const canvas = document.createElement("canvas");
+    canvas.width = 1;
+    canvas.height = 1;
+    canvas.style = "border: 1px solid black; max-width: 100%;";
+    const panel = document.getElementById("debugPanel");
+
+    if(text) {
+      const fig = document.createElement("figure");
+      const p = document.createElement("figcaption");
+      p.appendChild(document.createTextNode(text));
+      fig.appendChild(p)
+      fig.appendChild(canvas)
+      panel.appendChild(fig)
+    } else {
+      panel.appendChild(canvas)
+    }
+    
+    cv.imshow(canvas, img); // Must be run once the canvas is already in the DOM
+    
+    Log._logs.push({ts: new Date().toISOString(), type: "image", label: text, image: canvas.toDataURL()});
+  },
+  log: function(text) {
+    const panel = document.getElementById("debugPanel");
+    panel.appendChild(document.createTextNode(text));
+    Log._logs.push({ts: new Date().toISOString(), type: "text", text});
+  },
+  data: function(tag, d) {
+    const panel = document.getElementById("debugPanel");
+    panel.appendChild(document.createTextNode(JSON.stringify(d)));
+    Log._logs.push({ts: new Date().toISOString(), type: "data", tag, data: d});
+  },
+  error: function(tag, e){
+    const panel = document.getElementById("debugPanel");
+    //const errString = JSON.stringify(e, Object.getOwnPropertyNames(e))
+    const errString = String(e)
+    panel.appendChild(document.createTextNode(errString));
+    Log._logs.push({ts: new Date().toISOString(), type: "error", tag, data: errString});
+  },
+}
 
 function median(arr) {
   const middle = Math.floor(arr.length / 2);
@@ -33,13 +80,15 @@ function median(arr) {
 }
 
 function processImage(src) {
-  cv.imshow("input", src);
+  Log.clear();
+
+  Log.image("Source", src)
   let dsize = new cv.Size(1280, 960);
   cv.resize(src, src, dsize, 0, 0, cv.INTER_AREA);
   
   let gray = new cv.Mat();
   cv.cvtColor(src, gray, cv.COLOR_BGR2GRAY, 0);
-  cv.imshow("a", gray);
+  Log.image("Grayscale", gray);
   
   let histSrc = new cv.MatVector();
   histSrc.push_back(gray);
@@ -57,16 +106,22 @@ function processImage(src) {
   }
   
   let binary = new cv.Mat();
-  const cutoff = cv.threshold(gray, binary, 0, 255, cv.THRESH_BINARY_INV + cv.THRESH_OTSU);
+  Log.log("Thresholding algorithm=Adaptive+invert")
+  const blockSize=51, C=20;
+  Log.data("thresholding params", {blockSize, C})
+  //const cutoff = cv.threshold(gray, binary, 0, 255, cv.THRESH_BINARY_INV + cv.THRESH_OTSU);
   //const cutoff = cv.threshold(gray, binary, 0, 255, cv.THRESH_BINARY_INV + cv.THRESH_TRIANGLE);
-  //cv.adaptiveThreshold(gray, binary, 255, cv.ADAPTIVE_THRESH_GAUSSIAN_C, cv.THRESH_BINARY, 301, 40); const cutoff = 0;
-  
-  cv.rectangle(histFigure, {x: cutoff*histScale, y: histHeight}, {x: cutoff*histScale+1, y: 0}, [255, 0, 0, 255], cv.FILLED);
-  cv.imshow('hist', histFigure);
+  cv.adaptiveThreshold(gray, binary, 255, cv.ADAPTIVE_THRESH_GAUSSIAN_C, cv.THRESH_BINARY_INV, blockSize, C); const cutoff = -1;
+  // draw red line on threshold
+  if(cutoff>-1) {
+    cv.rectangle(histFigure, {x: cutoff*histScale, y: histHeight}, {x: cutoff*histScale+1, y: 0}, [255, 0, 0, 255], cv.FILLED);
+  }
+  Log.image("Hist", histFigure);
+  Log.log(`Threshold=${cutoff}`)
   gray.delete(); hist.delete(); histSrc.delete(); mask.delete(); histFigure.delete();
   
   let opened = binary.clone();
-  cv.imshow("c", opened);
+  Log.image("Opening", opened);
   
   let blobLabels = new cv.Mat(), blobStats = new cv.Mat(), centroids = new cv.Mat();
   let seedData = [];
@@ -97,7 +152,7 @@ function processImage(src) {
     });
   }
   blobStats.delete(); centroids.delete();
-  console.log(seedData);
+  Log.data("seed_data", seedData);
   
   const areas = seedData.map(x => x.area);
   const frs = seedData.map(x => x.fillRatio);
@@ -111,16 +166,16 @@ function processImage(src) {
     cv.putText(src, "x"+numSeeds/*+"="+fillRatio*/, {x:seed.corner.x0, y:seed.corner.y0-2}, cv.FONT_HERSHEY_SIMPLEX, 0.5, [255,255,255,255], 1)
   }
   
+  Log.data("final_stats", {medianArea, totalSeeds})
   cv.putText(src, "Total="+totalSeeds, {x: 5, y: 35}, cv.FONT_HERSHEY_SIMPLEX, 1.0, [255,255,255,255], 2)
+  Log.image("Output", src);
   cv.imshow("output", src);
-  
-  /*console.log("y=["+areas+"]'\nhist(y, 100)");
-  console.log("z=["+frs+"]'\nhist(z, 100)");*/
   
   if(SHOW_CONTOURS) {
     let contours = new cv.MatVector(), hierarchy = new cv.Mat();
     cv.findContours(binary, contours, hierarchy, cv.RETR_CCOMP, cv.CHAIN_APPROX_SIMPLE);
     cv.drawContours(src, contours, -1, [0, 0, 255, 255], 1, cv.LINE_8, hierarchy, 100);
+    Log.image("Contours", src);
     contours.delete(); hierarchy.delete();
   }
   
@@ -145,6 +200,7 @@ async function setupStream() {
     });
   } catch (err) {
     alert("Video stream isn't available! Check that you're using a device with a back-facing camera and that you've granted permission to use it: " + err);
+    Log.error("get_user_media", err);
     throw err;
   }
   
@@ -155,7 +211,7 @@ async function setupStream() {
   let imageCapture = new ImageCapture(track);
   //track.applyConstraints({frameRate: 5})
   const capabilities = track.getCapabilities();
-  console.log(capabilities);
+  Log.data("stream_capabilities", capabilities);
   const settings = track.getSettings();
   
   while(true) {
@@ -180,7 +236,8 @@ async function setupStream() {
     try {
       const seeds = await processingPromise;
       document.getElementById("totalCount").textContent = `${seeds} seeds`
-    } catch {
+    } catch (error){
+      Log.error("processing_promise", error);
       alert("ERR")
     }
   }
