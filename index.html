@@ -2,16 +2,115 @@
 <html>
 <head>
     <script async src="https://docs.opencv.org/4.x/opencv.js" type="text/javascript"></script>
+    <style>
+        button#snapshot {
+            --snapshot-color: rgb(225 29 72);
+
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 1;
+            background: var(--snapshot-color);
+            border-radius: 50%;
+            border: none;
+            outline-offset: 2px;
+            outline: 2px solid var(--snapshot-color);
+            padding: 20px;
+        }
+
+        button#snapshot:active, button#snapshot:disabled {
+            --snapshot-color: color-mix(in srgb, rgb(225 29 72), #000 30%);
+            padding: 23px;
+        }
+
+        /*
+        Spinner element is taken from Luke Haas's css-loaders project
+        Copyright (c) 2014 Luke Haas, MIT licensed
+        https://github.com/lukehaas/css-loaders
+        */
+        button#snapshot:disabled .spinner {
+            display: block !important;
+            color: #ffffff;
+            font-size: 5px;
+            /*margin: 100px auto;*/
+            width: .8em;
+            height: .8em;
+            border-radius: 50%;
+            position: relative;
+            text-indent: -9999em;
+            -webkit-animation: load4 1.3s infinite linear;
+            animation: load4 1.3s infinite linear;
+            -webkit-transform: translateZ(0);
+            -ms-transform: translateZ(0);
+            transform: translateZ(0);
+        }
+
+        @-webkit-keyframes load4 {
+            0%,
+            100% {
+                box-shadow: 0 -3em 0 0.2em, 2em -2em 0 0em, 3em 0 0 -1em, 2em 2em 0 -1em, 0 3em 0 -1em, -2em 2em 0 -1em, -3em 0 0 -1em, -2em -2em 0 0;
+            }
+            12.5% {
+                box-shadow: 0 -3em 0 0, 2em -2em 0 0.2em, 3em 0 0 0, 2em 2em 0 -1em, 0 3em 0 -1em, -2em 2em 0 -1em, -3em 0 0 -1em, -2em -2em 0 -1em;
+            }
+            25% {
+                box-shadow: 0 -3em 0 -0.5em, 2em -2em 0 0, 3em 0 0 0.2em, 2em 2em 0 0, 0 3em 0 -1em, -2em 2em 0 -1em, -3em 0 0 -1em, -2em -2em 0 -1em;
+            }
+            37.5% {
+                box-shadow: 0 -3em 0 -1em, 2em -2em 0 -1em, 3em 0em 0 0, 2em 2em 0 0.2em, 0 3em 0 0em, -2em 2em 0 -1em, -3em 0em 0 -1em, -2em -2em 0 -1em;
+            }
+            50% {
+                box-shadow: 0 -3em 0 -1em, 2em -2em 0 -1em, 3em 0 0 -1em, 2em 2em 0 0em, 0 3em 0 0.2em, -2em 2em 0 0, -3em 0em 0 -1em, -2em -2em 0 -1em;
+            }
+            62.5% {
+                box-shadow: 0 -3em 0 -1em, 2em -2em 0 -1em, 3em 0 0 -1em, 2em 2em 0 -1em, 0 3em 0 0, -2em 2em 0 0.2em, -3em 0 0 0, -2em -2em 0 -1em;
+            }
+            75% {
+                box-shadow: 0em -3em 0 -1em, 2em -2em 0 -1em, 3em 0em 0 -1em, 2em 2em 0 -1em, 0 3em 0 -1em, -2em 2em 0 0, -3em 0em 0 0.2em, -2em -2em 0 0;
+            }
+            87.5% {
+                box-shadow: 0em -3em 0 0, 2em -2em 0 -1em, 3em 0 0 -1em, 2em 2em 0 -1em, 0 3em 0 -1em, -2em 2em 0 0, -3em 0em 0 0, -2em -2em 0 0.2em;
+            }
+        }
+
+        @keyframes load4 {
+            0%,
+            100% {
+                box-shadow: 0 -3em 0 0.2em, 2em -2em 0 0em, 3em 0 0 -1em, 2em 2em 0 -1em, 0 3em 0 -1em, -2em 2em 0 -1em, -3em 0 0 -1em, -2em -2em 0 0;
+            }
+            12.5% {
+                box-shadow: 0 -3em 0 0, 2em -2em 0 0.2em, 3em 0 0 0, 2em 2em 0 -1em, 0 3em 0 -1em, -2em 2em 0 -1em, -3em 0 0 -1em, -2em -2em 0 -1em;
+            }
+            25% {
+                box-shadow: 0 -3em 0 -0.5em, 2em -2em 0 0, 3em 0 0 0.2em, 2em 2em 0 0, 0 3em 0 -1em, -2em 2em 0 -1em, -3em 0 0 -1em, -2em -2em 0 -1em;
+            }
+            37.5% {
+                box-shadow: 0 -3em 0 -1em, 2em -2em 0 -1em, 3em 0em 0 0, 2em 2em 0 0.2em, 0 3em 0 0em, -2em 2em 0 -1em, -3em 0em 0 -1em, -2em -2em 0 -1em;
+            }
+            50% {
+                box-shadow: 0 -3em 0 -1em, 2em -2em 0 -1em, 3em 0 0 -1em, 2em 2em 0 0em, 0 3em 0 0.2em, -2em 2em 0 0, -3em 0em 0 -1em, -2em -2em 0 -1em;
+            }
+            62.5% {
+                box-shadow: 0 -3em 0 -1em, 2em -2em 0 -1em, 3em 0 0 -1em, 2em 2em 0 -1em, 0 3em 0 0, -2em 2em 0 0.2em, -3em 0 0 0, -2em -2em 0 -1em;
+            }
+            75% {
+                box-shadow: 0em -3em 0 -1em, 2em -2em 0 -1em, 3em 0em 0 -1em, 2em 2em 0 -1em, 0 3em 0 -1em, -2em 2em 0 0, -3em 0em 0 0.2em, -2em -2em 0 0;
+            }
+            87.5% {
+                box-shadow: 0em -3em 0 0, 2em -2em 0 -1em, 3em 0 0 -1em, 2em 2em 0 -1em, 0 3em 0 -1em, -2em 2em 0 0, -3em 0em 0 0, -2em -2em 0 0.2em;
+            }
+        }
+    </style>
 </head>
 
 <body style="display: flex; flex-direction: column;">
 
 <div style="position: relative; font-size:0px;">
     <video autoplay style="max-width: 50%;"></video>
-    <div id="snapshot"
-         style="cursor: pointer; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1; background: rgb(225 29 72); border-radius: 50%; padding: 20px;">
-        <span style="font-size: 24px;">&#x1F4F7;</span>
-    </div>
+    <button id="snapshot">
+        <div class="spinner" style="display:none;"></div>
+    </button>
     <canvas id="output" width="1" height="1" style="max-width: 50%;"></canvas>
 </div>
 <div id="totalCount" style="font-size: 3em; font-family: sans-serif; text-align: center; color: darkgreen;"></div>
@@ -78,6 +177,17 @@
         const middle = Math.floor(arr.length / 2);
         const nums = [...arr].sort((a, b) => a - b);
         return arr.length % 2 !== 0 ? nums[middle] : (nums[middle - 1] + nums[middle]) / 2;
+    }
+
+    function button() {
+        return {
+            disable: function () {
+                document.getElementById("snapshot").disabled = true
+            },
+            enable: function () {
+                document.getElementById("snapshot").disabled = false
+            },
+        }
     }
 
     function processImage(src) {
@@ -231,11 +341,13 @@
 
         while (true) {
             if (!mustProcess) {
-                await new Promise(r => setTimeout(r, 2000));
+                // Sleep for a bit
+                await new Promise(r => setTimeout(r, 200));
                 continue;
             }
 
             mustProcess = false;
+            button().disable()
             const processingPromise = new Promise(async (resolve) => {
                 const blob = await imageCapture.takePhoto();
                 const img = new Image();
@@ -255,6 +367,7 @@
                 Log.error("processing_promise", error);
                 alert("ERR")
             }
+            button().enable()
         }
     }
 
@@ -263,7 +376,7 @@
         onRuntimeInitialized() {
             setupStream();
 
-            document.getElementById("snapshot").onclick = () => mustProcess = true;
+            document.getElementById("snapshot").onmousedown = () => mustProcess = true;
         }
     };
 </script>
