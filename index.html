@@ -3,9 +3,12 @@
 <head>
     <script async src="https://docs.opencv.org/4.x/opencv.js" type="text/javascript"></script>
     <style>
-        button#snapshot {
+        :root {
             --snapshot-color: rgb(225 29 72);
+            --snapshot-color-dark: hsl(from var(--snapshot-color) h s calc(l - 5));
+        }
 
+        button#snapshot {
             position: absolute;
             top: 50%;
             left: 50%;
@@ -19,8 +22,9 @@
             padding: 20px;
         }
 
-        button#snapshot:active, button#snapshot:disabled {
-            --snapshot-color: color-mix(in srgb, rgb(225 29 72), #000 30%);
+        button#snapshot:active {
+            background: var(--snapshot-color-dark);
+            outline: 2px solid var(--snapshot-color-dark);
             padding: 23px;
         }
 
@@ -31,47 +35,16 @@
         */
         button#snapshot:disabled .spinner {
             display: block !important;
+            position: absolute;
             color: #ffffff;
-            font-size: 5px;
-            /*margin: 100px auto;*/
-            width: .8em;
-            height: .8em;
+            font-size: 3px;
+            width: 1em;
+            height: 1em;
             border-radius: 50%;
-            position: relative;
+            /*position: relative;*/
             text-indent: -9999em;
-            -webkit-animation: load4 1.3s infinite linear;
             animation: load4 1.3s infinite linear;
-            -webkit-transform: translateZ(0);
-            -ms-transform: translateZ(0);
             transform: translateZ(0);
-        }
-
-        @-webkit-keyframes load4 {
-            0%,
-            100% {
-                box-shadow: 0 -3em 0 0.2em, 2em -2em 0 0em, 3em 0 0 -1em, 2em 2em 0 -1em, 0 3em 0 -1em, -2em 2em 0 -1em, -3em 0 0 -1em, -2em -2em 0 0;
-            }
-            12.5% {
-                box-shadow: 0 -3em 0 0, 2em -2em 0 0.2em, 3em 0 0 0, 2em 2em 0 -1em, 0 3em 0 -1em, -2em 2em 0 -1em, -3em 0 0 -1em, -2em -2em 0 -1em;
-            }
-            25% {
-                box-shadow: 0 -3em 0 -0.5em, 2em -2em 0 0, 3em 0 0 0.2em, 2em 2em 0 0, 0 3em 0 -1em, -2em 2em 0 -1em, -3em 0 0 -1em, -2em -2em 0 -1em;
-            }
-            37.5% {
-                box-shadow: 0 -3em 0 -1em, 2em -2em 0 -1em, 3em 0em 0 0, 2em 2em 0 0.2em, 0 3em 0 0em, -2em 2em 0 -1em, -3em 0em 0 -1em, -2em -2em 0 -1em;
-            }
-            50% {
-                box-shadow: 0 -3em 0 -1em, 2em -2em 0 -1em, 3em 0 0 -1em, 2em 2em 0 0em, 0 3em 0 0.2em, -2em 2em 0 0, -3em 0em 0 -1em, -2em -2em 0 -1em;
-            }
-            62.5% {
-                box-shadow: 0 -3em 0 -1em, 2em -2em 0 -1em, 3em 0 0 -1em, 2em 2em 0 -1em, 0 3em 0 0, -2em 2em 0 0.2em, -3em 0 0 0, -2em -2em 0 -1em;
-            }
-            75% {
-                box-shadow: 0em -3em 0 -1em, 2em -2em 0 -1em, 3em 0em 0 -1em, 2em 2em 0 -1em, 0 3em 0 -1em, -2em 2em 0 0, -3em 0em 0 0.2em, -2em -2em 0 0;
-            }
-            87.5% {
-                box-shadow: 0em -3em 0 0, 2em -2em 0 -1em, 3em 0 0 -1em, 2em 2em 0 -1em, 0 3em 0 -1em, -2em 2em 0 0, -3em 0em 0 0, -2em -2em 0 0.2em;
-            }
         }
 
         @keyframes load4 {
@@ -121,7 +94,6 @@
 
 <script>
     const SHOW_CONTOURS = true;
-    let logs = [];
     const Log = {
         _logs: [],
         clear: function () {
@@ -172,22 +144,22 @@
             Log._logs.push({ts: new Date().toISOString(), type: "error", tag, data: errString});
         },
     }
+    const Button = {
+        setup: function () {
+            document.getElementById("snapshot").onclick = () => mustProcess = true;
+        },
+        disable: function () {
+            document.getElementById("snapshot").disabled = true
+        },
+        enable: function () {
+            document.getElementById("snapshot").disabled = false
+        },
+    }
 
     function median(arr) {
         const middle = Math.floor(arr.length / 2);
         const nums = [...arr].sort((a, b) => a - b);
         return arr.length % 2 !== 0 ? nums[middle] : (nums[middle - 1] + nums[middle]) / 2;
-    }
-
-    function button() {
-        return {
-            disable: function () {
-                document.getElementById("snapshot").disabled = true
-            },
-            enable: function () {
-                document.getElementById("snapshot").disabled = false
-            },
-        }
     }
 
     function processImage(src) {
@@ -220,8 +192,8 @@
         Log.log("Thresholding algorithm=Adaptive+invert")
         const blockSize = 51, C = 20;
         Log.data("thresholding params", {blockSize, C})
-        //const cutoff = cv.threshold(gray, binary, 0, 255, cv.THRESH_BINARY_INV + cv.THRESH_OTSU);
-        //const cutoff = cv.threshold(gray, binary, 0, 255, cv.THRESH_BINARY_INV + cv.THRESH_TRIANGLE);
+        // const cutoff = cv.threshold(gray, binary, 0, 255, cv.THRESH_BINARY_INV + cv.THRESH_OTSU);
+        // const cutoff = cv.threshold(gray, binary, 0, 255, cv.THRESH_BINARY_INV + cv.THRESH_TRIANGLE);
         cv.adaptiveThreshold(gray, binary, 255, cv.ADAPTIVE_THRESH_GAUSSIAN_C, cv.THRESH_BINARY_INV, blockSize, C);
         const cutoff = -1;
         // draw red line on threshold
@@ -254,9 +226,9 @@
             const area = blobStat[4];
             const fillRatio = area / (w * h);
 
-            /*if(area<=70) continue; // speck of something
+            if(area<=16) continue; // speck of something
             if(fillRatio<0.3) continue; // same
-            if(w/h < 0.05 || w/h > 20) continue; // too skinny, very unlikely to be a row of 20 seeds in a perfect orthogonal row*/
+            if(w/h < 0.05 || w/h > 20) continue; // too skinny, very unlikely to be a row of 20 seeds in a perfect orthogonal row
 
             const PADDING = 0;
             cv.rectangle(src, new cv.Point(x0 - PADDING, y0 - PADDING), new cv.Point(x0 + w + PADDING, y0 + h + PADDING), [255, 0, 0, 255], 1);
@@ -347,7 +319,7 @@
             }
 
             mustProcess = false;
-            button().disable()
+            Button.disable()
             const processingPromise = new Promise(async (resolve) => {
                 const blob = await imageCapture.takePhoto();
                 const img = new Image();
@@ -367,7 +339,7 @@
                 Log.error("processing_promise", error);
                 alert("ERR")
             }
-            button().enable()
+            Button.enable()
         }
     }
 
@@ -375,8 +347,7 @@
         // https://emscripten.org/docs/api_reference/module.html#Module.onRuntimeInitialized
         onRuntimeInitialized() {
             setupStream();
-
-            document.getElementById("snapshot").onmousedown = () => mustProcess = true;
+            Button.setup();
         }
     };
 </script>
