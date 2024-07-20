@@ -97,49 +97,46 @@
     const Log = {
         _logs: [],
         clear: function () {
-            const panel = document.getElementById("debugPanel");
-            while (panel.lastChild.nodeName !== "SUMMARY") {
-                panel.removeChild(panel.lastChild);
-            }
+            const panel = document.querySelector("#debugPanel dl");
+            panel.textContent = "";
+            // while (panel.lastChild.nodeName !== "SUMMARY") {
+            //     panel.removeChild(panel.lastChild);
+            // }
 
             Log._logs = []; // clear array
+        },
+        _addEntry(name, content) {
+            const panel = document.querySelector("#debugPanel dl");
+            const dt = document.createElement("dt");
+            dt.textContent = name;
+            const dd = document.createElement("dd");
+            dd.appendChild(content)
+            panel.append(dt, dd)
         },
         image: function (text, img) {
             const canvas = document.createElement("canvas");
             canvas.width = 1;
             canvas.height = 1;
             canvas.style = "border: 1px solid black; max-width: 100%;";
-            const panel = document.getElementById("debugPanel");
 
-            if (text) {
-                const fig = document.createElement("figure");
-                const p = document.createElement("figcaption");
-                p.appendChild(document.createTextNode(text));
-                fig.appendChild(p)
-                fig.appendChild(canvas)
-                panel.appendChild(fig)
-            } else {
-                panel.appendChild(canvas)
-            }
+            Log._addEntry(text || "Image", canvas)
 
             cv.imshow(canvas, img); // Must be run once the canvas is already in the DOM
 
             Log._logs.push({ts: new Date().toISOString(), type: "image", label: text, image: canvas.toDataURL()});
         },
         log: function (text) {
-            const panel = document.getElementById("debugPanel");
-            panel.appendChild(document.createTextNode(text));
+            Log._addEntry("Text", document.createTextNode(text))
             Log._logs.push({ts: new Date().toISOString(), type: "text", text});
         },
         data: function (tag, d) {
-            const panel = document.getElementById("debugPanel");
-            panel.appendChild(document.createTextNode(JSON.stringify(d)));
+            const json = document.createElement("code")
+            json.textContent = JSON.stringify(d)
+             Log._addEntry("Data", json)
             Log._logs.push({ts: new Date().toISOString(), type: "data", tag, data: d});
         },
         error: function (tag, e) {
-            const panel = document.getElementById("debugPanel");
-            //const errString = JSON.stringify(e, Object.getOwnPropertyNames(e))
-            const errString = String(e)
+            Log._addEntry("Error", document.createTextNode(errString))
             panel.appendChild(document.createTextNode(errString));
             Log._logs.push({ts: new Date().toISOString(), type: "error", tag, data: errString});
         },
@@ -163,8 +160,6 @@
     }
 
     function processImage(src) {
-        Log.clear();
-
         Log.image("Source", src)
         let dsize = new cv.Size(1280, 960);
         cv.resize(src, src, dsize, 0, 0, cv.INTER_AREA);
@@ -226,9 +221,9 @@
             const area = blobStat[4];
             const fillRatio = area / (w * h);
 
-            if(area<=16) continue; // speck of something
-            if(fillRatio<0.3) continue; // same
-            if(w/h < 0.05 || w/h > 20) continue; // too skinny, very unlikely to be a row of 20 seeds in a perfect orthogonal row
+            if (area <= 16) continue; // speck of something
+            if (fillRatio < 0.3) continue; // same
+            if (w / h < 0.05 || w / h > 20) continue; // too skinny, very unlikely to be a row of 20 seeds in a perfect orthogonal row
 
             const PADDING = 0;
             cv.rectangle(src, new cv.Point(x0 - PADDING, y0 - PADDING), new cv.Point(x0 + w + PADDING, y0 + h + PADDING), [255, 0, 0, 255], 1);
@@ -310,6 +305,7 @@
         const capabilities = track.getCapabilities();
         Log.data("stream_capabilities", capabilities);
         const settings = track.getSettings();
+        Log.data("stream_settings", settings);
 
         while (true) {
             if (!mustProcess) {
@@ -320,6 +316,9 @@
 
             mustProcess = false;
             Button.disable()
+            Log.clear();
+            Log.data("stream_capabilities", capabilities);
+            Log.data("stream_settings", settings);
             const processingPromise = new Promise(async (resolve) => {
                 const blob = await imageCapture.takePhoto();
                 const img = new Image();
