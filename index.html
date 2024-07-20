@@ -277,7 +277,7 @@
         Log.data("thresholding params", {blockSize, C})
         // const cutoff = cv.threshold(gray, binary, 0, 255, cv.THRESH_BINARY_INV + cv.THRESH_OTSU);
         // const cutoff = cv.threshold(gray, binary, 0, 255, cv.THRESH_BINARY_INV + cv.THRESH_TRIANGLE);
-        cv.adaptiveThreshold(gray, binary, 255, cv.ADAPTIVE_THRESH_GAUSSIAN_C, cv.THRESH_BINARY_INV, blockSize, C);
+        cv.adaptiveThreshold(gray, binary, 255, cv.ADAPTIVE_THRESH_MEAN_C, cv.THRESH_BINARY_INV, blockSize, C);
         const cutoff = -1;
         // draw red line on threshold
         if (cutoff > -1) {
