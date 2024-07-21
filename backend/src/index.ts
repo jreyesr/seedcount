@@ -21,17 +21,18 @@ export default {
 		msg.setSubject("A bug report was sent from Seedcount");
 		msg.addMessage({
 			contentType: 'text/plain',
-			data: `Congratulations, you just sent an email from a worker.`
+			data: JSON.stringify(payload),
 		});
 		let i = 1;
 		for (const log of payload) {
 			if (log.type === "image") {
 				msg.addAttachment({
-					filename: `${i}.jpg`,
+					filename: `${i}.png`,
 					contentType: "image/png",
 					data: log.image
 				})
 			}
+			i++
 		}
 
 		const message = new EmailMessage(
