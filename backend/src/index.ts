@@ -21,7 +21,7 @@ export default {
 		msg.setSubject("A bug report was sent from Seedcount");
 		msg.addMessage({
 			contentType: 'text/plain',
-			data: JSON.stringify(payload.filter(l => l.type !== "image")),
+			data: JSON.stringify(payload.filter(l => l.type !== "image"), null, 2),
 		});
 		let i = 1;
 		for (const log of payload) {
