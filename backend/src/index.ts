@@ -29,7 +29,8 @@ export default {
 				msg.addAttachment({
 					filename: `${i}.png`,
 					contentType: "image/png",
-					data: log.image
+					// Images are sent like data:image/png;base64,iVBORw0KGgoAAAANSUhE...
+					data: log.image.replace("data:image/png;base64,", "")
 				})
 				i++
 			}
