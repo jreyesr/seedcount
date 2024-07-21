@@ -31,8 +31,8 @@ export default {
 					contentType: "image/png",
 					data: log.image
 				})
+				i++
 			}
-			i++
 		}
 
 		const message = new EmailMessage(
