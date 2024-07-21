@@ -227,7 +227,10 @@
                 document.querySelector("#sendDebugModal .close").onclick = () => sidebar.close();
             };
             sidebar.addEventListener("close", e => {
-                console.log(e)
+                fetch("/bugreport", {
+                    method: "POST",
+                    body: JSON.stringify(Log._logs)
+                })
             })
         },
         wiggle: function () {
