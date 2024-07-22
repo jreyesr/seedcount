@@ -21,3 +21,24 @@ To use:
 The app uses [OpenCV.js](https://docs.opencv.org/4.x/df/d0a/tutorial_js_intro.html), which allows it to perform image processing operations entirely client-side (traditionally OpenCV requires a Python or C++ backend).
 
 The exact algorithms used are documented in great detail in [a blog post](https://blog.jreyesr.com/posts/seedcounter/).
+
+## Developers
+
+### Deploy backend to CF Workers
+
+```bash
+cd backend
+npx wrangler deploy
+```
+
+This will compile, bundle and upload the `backend/src/index.ts` to Cloudflare Workers, thus deploying a new version of the backend.
+
+### After changing `index.html` or `sw.js`
+
+```bash
+npx workbox-cli injectManifest workbox-config.js
+```
+
+This will update the "revision" (i.e. hash) of `index.html` for the Service Worker, 
+so it can cache-bust the HTML file. It will write the final SW file
+to `sw.out.js`, which is the file that is actually registered on the browser.
