@@ -203,8 +203,8 @@
             Log._logs.push({ts: new Date().toISOString(), type: "data", tag, data: d});
         },
         error: function (tag, e) {
+            const errString = String(e)
             Log._addEntry("Error", document.createTextNode(errString))
-            panel.appendChild(document.createTextNode(errString));
             Log._logs.push({ts: new Date().toISOString(), type: "error", tag, data: errString});
         },
     }
