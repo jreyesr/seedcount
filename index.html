@@ -446,6 +446,15 @@
     };
 </script>
 
+<script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.out.js');
+      });
+    }
+  </script>
+
+
 <!-- Cloudflare Web Analytics -->
 <script defer src='https://static.cloudflareinsights.com/beacon.min.js'
         data-cf-beacon='{"token": "84cd2fbe6c56408ca10c975fbd303d2e"}'></script>
