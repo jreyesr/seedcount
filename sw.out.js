@@ -11,7 +11,9 @@ workbox.routing.registerRoute(
     new workbox.strategies.NetworkFirst()
 );
 
-workbox.precaching.precacheAndRoute([{"revision":"2d8f08251d09756cbd8feee9d6abd82c","url":"index.html"}])
+// NOTE: Don't touch the line below! It'll be replaced by workbox-cli to include data generated
+// from workbox-config.js
+workbox.precaching.precacheAndRoute([{"revision":"bb989b4ddd927fb65305ca65b0ce246a","url":"index.html"}])
 
 workbox.routing.registerRoute(
     new workbox.routing.NavigationRoute(
@@ -19,3 +21,15 @@ workbox.routing.registerRoute(
     ),
     new workbox.strategies.NetworkFirst()
 )
+
+// The Background Sync plugin is used to queue the bug reports
+const bgSyncPlugin = new workbox.backgroundSync.BackgroundSyncPlugin('bugReports', {
+  maxRetentionTime: 3 * 24 * 60, // we'll keep requests for up to 3 days
+});
+workbox.routing.registerRoute(
+  /\/bugreport/,
+  new workbox.strategies.NetworkOnly({
+    plugins: [bgSyncPlugin],
+  }),
+  'POST'
+);
