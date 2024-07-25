@@ -142,7 +142,6 @@ function processImage(img) {
     }
     blobStats.delete();
     centroids.delete();
-    Log.data("seed_data", seedData);
 
     const areas = seedData.map(x => x.area);
     const frs = seedData.map(x => x.fillRatio);
@@ -150,6 +149,7 @@ function processImage(img) {
 
     let totalSeeds = 0;
     for (let seed of seedData) {
+        seed.numSeeds = seed.area / medianArea;
         const numSeeds = Math.round(seed.area / medianArea);
         const numSeedsX = (seed.area / medianArea).toFixed(2);
         totalSeeds += numSeeds;
@@ -159,6 +159,7 @@ function processImage(img) {
         }, cv.FONT_HERSHEY_SIMPLEX, 0.5, [255, 255, 255, 255], 1)
     }
 
+    Log.data("seed_data", seedData);
     Log.data("final_stats", {medianArea, totalSeeds})
     cv.putText(src, "Total=" + totalSeeds, {x: 5, y: 35}, cv.FONT_HERSHEY_SIMPLEX, 1.0, [255, 255, 255, 255], 2)
     Log.image("Output", matToImageData(src));
