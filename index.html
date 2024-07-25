@@ -237,13 +237,14 @@
         },
     }
     const Button = {
+        imageCapture: null,
         setup: function () {
             const button = document.getElementById("snapshot");
             button.disabled = false;
             button.onclick = async () => {
                 Button.disable()
                 Log.clear();
-                const blob = await imageCapture.takePhoto();
+                const blob = await Button.imageCapture.takePhoto();
                 const img = new Image();
                 const processingPromise = new Promise(async (resolve) => {
                     img.addEventListener("load", async () => {
@@ -329,6 +330,7 @@
 
         const [track] = stream.getVideoTracks();
         let imageCapture = new ImageCapture(track);
+        Button.imageCapture = imageCapture;
         //track.applyConstraints({frameRate: 5})
         const capabilities = track.getCapabilities();
         Log.data("stream_capabilities", capabilities);
