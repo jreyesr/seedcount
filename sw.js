@@ -4,9 +4,13 @@ workbox.setConfig({
     modulePathPrefix: './workbox/workbox-v7.1.0/',
 });
 
+const EXTERNAL_LIBS = [
+    "https://docs.opencv.org/4.x/opencv.js",
+    "https://unpkg.com/comlink@4.4.1/dist/umd/comlink.js",
+]
 workbox.routing.registerRoute(
     ({request}) => {
-        return request.destination === 'document' || request.url === "https://docs.opencv.org/4.x/opencv.js"
+        return request.destination === 'document' || EXTERNAL_LIBS.includes(request.url)
     },
     new workbox.strategies.NetworkFirst()
 );
@@ -24,12 +28,12 @@ workbox.routing.registerRoute(
 
 // The Background Sync plugin is used to queue the bug reports
 const bgSyncPlugin = new workbox.backgroundSync.BackgroundSyncPlugin('bugReports', {
-  maxRetentionTime: 3 * 24 * 60, // we'll keep requests for up to 3 days
+    maxRetentionTime: 3 * 24 * 60, // we'll keep requests for up to 3 days
 });
 workbox.routing.registerRoute(
-  /\/bugreport/,
-  new workbox.strategies.NetworkOnly({
-    plugins: [bgSyncPlugin],
-  }),
-  'POST'
+    /\/bugreport/,
+    new workbox.strategies.NetworkOnly({
+        plugins: [bgSyncPlugin],
+    }),
+    'POST'
 );
