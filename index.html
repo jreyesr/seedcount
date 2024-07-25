@@ -243,8 +243,6 @@
             button.onclick = async () => {
                 Button.disable()
                 Log.clear();
-                Log.data("stream_capabilities", capabilities);
-                Log.data("stream_settings", settings);
                 const blob = await imageCapture.takePhoto();
                 const img = new Image();
                 const processingPromise = new Promise(async (resolve) => {
