@@ -17,7 +17,7 @@ workbox.routing.registerRoute(
 
 // NOTE: Don't touch the line below! It'll be replaced by workbox-cli to include data generated
 // from workbox-config.js
-workbox.precaching.precacheAndRoute([{"revision":"c0a33e3547d86fb0d6e9b712522004b8","url":"index.html"}])
+workbox.precaching.precacheAndRoute([{"revision":"d3085ddc75d8d7f608fee836a8b6a7fa","url":"index.html"},{"revision":"d3b6fb4253404e33a92de39777d344de","url":"ww.js"}])
 
 workbox.routing.registerRoute(
     new workbox.routing.NavigationRoute(

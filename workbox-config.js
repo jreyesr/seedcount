@@ -1,7 +1,8 @@
 module.exports = {
 	globDirectory: '.',
 	globPatterns: [
-		'./index.html'
+		'./index.html',
+		'./ww.js'
 	],
 	swSrc: 'sw.js',
 	swDest: 'sw.out.js'
