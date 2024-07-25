@@ -123,8 +123,8 @@
 
 <div style="position: relative; font-size:0px;">
     <video autoplay style="max-width: 50%;"></video>
-    <button id="snapshot">
-        <div class="spinner" style="display:none;"></div>
+    <button id="snapshot" disabled>
+        <span class="spinner" style="display:none;"></span>
     </button>
     <canvas id="output" width="1" height="1" style="max-width: 50%;"></canvas>
 </div>
@@ -210,7 +210,9 @@
     }
     const Button = {
         setup: function () {
-            document.getElementById("snapshot").onclick = () => mustProcess = true;
+            const button = document.getElementById("snapshot");
+            button.disabled = false;
+            button.onclick = () => mustProcess = true;
         },
         disable: function () {
             document.getElementById("snapshot").disabled = true
