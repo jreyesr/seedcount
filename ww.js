@@ -1,4 +1,4 @@
-importScripts("https://unpkg.com/comlink/dist/umd/comlink.js");
+importScripts("https://unpkg.com/comlink@4.4.1/dist/umd/comlink.js");
 
 let resolveLoaded, Log;
 
