@@ -29,7 +29,6 @@ let Module = {
 // Third party copyrights are property of their respective owners.
 // See https://github.com/opencv/opencv/blob/4.x/LICENSE
 function matToImageData(mat) {
-
     let img = new cv.Mat;
     let depth = mat.type() % 8;
     let scale = depth <= cv.CV_8S ? 1 : depth <= cv.CV_32S ? 1 / 256 : 255;
@@ -59,6 +58,16 @@ function median(arr) {
 
 const SHOW_CONTOURS = true;
 
+function mostCommonValue(img, hist) {
+    let r = cv.minMaxLoc(img);
+    let min = r.minVal, max = r.maxVal;
+
+    let r2 = cv.minMaxLoc(hist);
+    let mostCommonGray = r2.maxLoc.y;
+
+    return {min, max, mostCommon: mostCommonGray};
+}
+
 function processImage(img) {
     let src = cv.matFromImageData(img);
 
@@ -85,13 +94,30 @@ function processImage(img) {
         cv.rectangle(histFigure, point1, point2, [255, 255, 255, 255], cv.FILLED);
     }
 
+    const imageStats = mostCommonValue(gray, hist);
+    // imageStats.mostCommon is most common gray value, we assume that it's the BG color
+    const distToTop = imageStats.max - imageStats.mostCommon,
+        distToBottom = imageStats.mostCommon - imageStats.min;
+    let threshType;
+    if (distToTop < distToBottom) {
+        // most common value is closer to top => peak is lighter => white BG => invert
+        threshType = cv.THRESH_BINARY_INV;
+        Log.data("background_detection", {...imageStats, decision: "invert"})
+    } else {
+        // most common value is closer to bottom => peak is darker => dark BG => don't invert
+        threshType = cv.THRESH_BINARY;
+        Log.data("background_detection", {...imageStats, decision: "no_invert"})
+    }
+
     let binary = new cv.Mat();
-    Log.log("Thresholding algorithm=Adaptive+invert")
-    const blockSize = 51, C = 20;
+    Log.log("Thresholding algorithm=Adaptive")
+    // NOTE: We need to swap C around too, it's usually negative on "normal" binarization so we need it to be positive on inverted binarization
+    const blockSize = 51,
+        C = threshType === cv.THRESH_BINARY_INV ? 20 : -20;
     Log.data("thresholding params", {blockSize, C})
-    // const cutoff = cv.threshold(gray, binary, 0, 255, cv.THRESH_BINARY_INV + cv.THRESH_OTSU);
-    // const cutoff = cv.threshold(gray, binary, 0, 255, cv.THRESH_BINARY_INV + cv.THRESH_TRIANGLE);
-    cv.adaptiveThreshold(gray, binary, 255, cv.ADAPTIVE_THRESH_MEAN_C, cv.THRESH_BINARY_INV, blockSize, C);
+    // const cutoff = cv.threshold(gray, binary, 0, 255, threshType + cv.THRESH_OTSU);
+    // const cutoff = cv.threshold(gray, binary, 0, 255, threshType + cv.THRESH_TRIANGLE);
+    cv.adaptiveThreshold(gray, binary, 255, cv.ADAPTIVE_THRESH_MEAN_C, threshType, blockSize, C);
     const cutoff = -1;
     // draw red line on threshold
     if (cutoff > -1) {
